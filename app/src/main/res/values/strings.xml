@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SimpleChat</string>
+    <string name="title_activity_conversations_list">ConversationsListActivity</string>
+</resources>
