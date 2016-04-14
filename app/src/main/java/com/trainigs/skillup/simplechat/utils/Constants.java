@@ -26,4 +26,14 @@ public final class Constants {
         public static final String ID = "id";
         public static final String TITLE = "title";
     }
+
+    public final class Message {
+        private Message() {
+        }
+
+        public static final String TABLE_NAME = "Messages";
+        public static final String ID = "id";
+        public static final String CONTENT = "content";
+
+    }
 }

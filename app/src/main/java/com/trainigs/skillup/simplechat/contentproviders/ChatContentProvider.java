@@ -9,16 +9,17 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.trainigs.skillup.simplechat.db.ConversationsSQLiteHelper;
+import com.trainigs.skillup.simplechat.db.ChatSQLiteHelper;
 import com.trainigs.skillup.simplechat.utils.Constants;
 
 /**
  * Created by Irakli on 4/14/2016
  */
-public class ConversationContentProvider extends ContentProvider {
+public class ChatContentProvider extends ContentProvider {
 
-    public static final Uri CONTENT_URI = Uri.parse("content://" + Constants.PROVIDER_AUTHORITY
+    public static final Uri CONVERSATION_CONTENT_URI = Uri.parse("content://" + Constants.PROVIDER_AUTHORITY
             + "/" + Constants.Conversation.TABLE_NAME);
+    public static final Uri MESSAGE_CONTENT_URI = Uri.parse("");
 
     private static final int CONVERSATIONS = 1;
     private static final int CONVERSATIONS_ID = 2;
@@ -31,11 +32,11 @@ public class ConversationContentProvider extends ContentProvider {
         URI_MATCHER.addURI(Constants.PROVIDER_AUTHORITY, Constants.Conversation.TABLE_NAME + "/#", CONVERSATIONS_ID);
     }
 
-    private ConversationsSQLiteHelper dbHelper;
+    private ChatSQLiteHelper dbHelper;
 
     @Override
     public boolean onCreate() {
-        dbHelper = new ConversationsSQLiteHelper(getContext());
+        dbHelper = new ChatSQLiteHelper(getContext());
         return true;
     }
 
@@ -57,7 +58,7 @@ public class ConversationContentProvider extends ContentProvider {
         SQLiteDatabase database = dbHelper.getWritableDatabase();
         long value = database.insert(Constants.Conversation.TABLE_NAME, null, values);
         notifyChange(uri);
-        return Uri.withAppendedPath(CONTENT_URI, String.valueOf(value));
+        return Uri.withAppendedPath(CONVERSATION_CONTENT_URI, String.valueOf(value));
     }
 
     @Override

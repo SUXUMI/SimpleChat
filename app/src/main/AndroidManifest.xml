@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <provider
-            android:name=".contentproviders.ConversationContentProvider"
+            android:name=".contentproviders.ChatContentProvider"
             android:authorities="com.trainigs.skillup.simplechat.provider.SimpleChat"
             android:exported="false" />
 
