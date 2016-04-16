@@ -11,17 +11,27 @@ import android.provider.ContactsContract;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 
 import com.trainigs.skillup.simplechat.R;
+import com.trainigs.skillup.simplechat.ui.adapters.ContactsAdapter;
+
+import butterknife.Bind;
 
 public class ContactsListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int LOADER_PHONE_ID = 1;
 
+    @Bind(R.id.rv_contacts_list)
+    RecyclerView contactsRecyclerView;
+    private ContactsAdapter contactsAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts_list);
+
+        contactsAdapter = new ContactsAdapter(this);
     }
 
     @Override
@@ -31,10 +41,9 @@ public class ContactsListActivity extends AppCompatActivity implements LoaderMan
                 int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
                 if (hasWriteContactsPermission == PackageManager.PERMISSION_GRANTED) {
                     Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(args.getString("search", "")));
-                    CursorLoader cursorLoader = new CursorLoader(this, uri,
+                    return new CursorLoader(this, uri,
                             new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup.NUMBER}, null, null, null);
                 }
-                break;
         }
         return null;
     }

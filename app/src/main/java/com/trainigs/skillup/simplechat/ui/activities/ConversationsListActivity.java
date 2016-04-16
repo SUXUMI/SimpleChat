@@ -21,9 +21,12 @@ import butterknife.Bind;
 
 public class ConversationsListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final int LOADER_CONVERSATION_ID = 1;
+
     @Bind(R.id.rv_conversation_list)
     RecyclerView conversationRecyclerView;
     ConversationsAdapter conversationsAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,8 @@ public class ConversationsListActivity extends AppCompatActivity implements Load
         setContentView(R.layout.activity_conversations_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        conversationsAdapter = new ConversationsAdapter(this);
+        conversationRecyclerView.setAdapter(conversationsAdapter);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null)
@@ -44,17 +49,29 @@ public class ConversationsListActivity extends AppCompatActivity implements Load
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(this, ChatContentProvider.CONVERSATION_CONTENT_URI,
-                new String[]{Constants.Conversation.LAST_MESSAGE, Constants.Conversation.TITLE, Constants.Conversation.IMAGE_URI}, null, null, "ASC " + Constants.Conversation.LAST_MESSAGE_DATE);
+        switch (id) {
+            case LOADER_CONVERSATION_ID:
+                return new CursorLoader(this, ChatContentProvider.CONVERSATION_CONTENT_URI,
+                        new String[]{Constants.Conversation.LAST_MESSAGE, Constants.Conversation.TITLE, Constants.Conversation.IMAGE_URI}, null, null, "ASC " + Constants.Conversation.LAST_MESSAGE_DATE);
+        }
+        return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
+        switch (loader.getId()) {
+            case LOADER_CONVERSATION_ID:
+                conversationsAdapter.swapCursor(data);
+                break;
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-
+        switch (loader.getId()) {
+            case LOADER_CONVERSATION_ID:
+                conversationsAdapter.swapCursor(null);
+                break;
+        }
     }
 }
