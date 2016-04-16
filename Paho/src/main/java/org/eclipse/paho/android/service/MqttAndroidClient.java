@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 1999, 2014 IBM Corp.
+ * Copyright (c) 1999, 2016 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -9,6 +9,10 @@
  *    http://www.eclipse.org/legal/epl-v10.html
  * and the Eclipse Distribution License is available at 
  *   http://www.eclipse.org/org/documents/edl-v10.php.
+ *   
+ *   Ian Craggs - Per subscription message handlers bug 466579
+ *   Ian Craggs - ack control (bug 472172)
+ *   
  */
 package org.eclipse.paho.android.service;
 
@@ -28,11 +32,14 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -147,7 +154,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	private Ack messageAck;
 	private boolean traceEnabled = false;
 	
-	private volatile boolean registerReceiver = false;
+	private volatile boolean receiverRegistered = false;
 	private volatile boolean bindedService = false;
 
 	/**
@@ -241,10 +248,12 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	 */
 	@Override
 	public boolean isConnected() {
-		if (mqttService != null)
+
+		if (clientHandle != null && mqttService != null) {
 			return mqttService.isConnected(clientHandle);
-		else 
+		} else {
 			return false;
+		}
 	}
 
 	/**
@@ -286,6 +295,10 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	@Override
 	public void close() {
 	 if (clientHandle == null) {
+		 System.out.println(serverURI);
+		 System.out.println(clientId);
+		 System.out.println(myContext.getApplicationInfo().packageName);
+		 System.out.println(persistence);
 		 clientHandle = mqttService.getClient(serverURI, clientId, myContext.getApplicationInfo().packageName,persistence);
 	 }
 	 mqttService.close(clientHandle);
@@ -416,11 +429,10 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 
 			// We bind with BIND_SERVICE_FLAG (0), leaving us the manage the lifecycle
 			// until the last time it is stopped by a call to stopService()
-			myContext.startService(serviceStartIntent);
 			myContext.bindService(serviceStartIntent, serviceConnection,
 					Context.BIND_AUTO_CREATE);
-			
-			registerReceiver(this);
+
+			if (!receiverRegistered) registerReceiver(this);
 		}
 		else {
 			pool.execute(new Runnable() {
@@ -430,7 +442,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 					doConnect();
 					
 					//Register receiver to show shoulder tap.
-					registerReceiver(MqttAndroidClient.this);
+					if (!receiverRegistered) registerReceiver(MqttAndroidClient.this);
 				}
 
 			});
@@ -443,7 +455,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		IntentFilter filter = new IntentFilter();
 				filter.addAction(MqttServiceConstants.CALLBACK_TO_ACTIVITY);
 				LocalBroadcastManager.getInstance(myContext).registerReceiver(receiver, filter);
-				registerReceiver = true;
+				receiverRegistered = true;
 	}
 
 	/**
@@ -1046,6 +1058,103 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		mqttService.subscribe(clientHandle, topic, qos, null, activityToken);
 		return token;
 	}
+	
+	/**
+	 * Subscribe to a topic, which may include wildcards.
+	 *
+	 * @see #subscribe(String[], int[], Object, IMqttActionListener)
+	 *
+	 * @param topicFilter the topic to subscribe to, which can include wildcards.
+	 * @param qos the maximum quality of service at which to subscribe. Messages
+	 * published at a lower quality of service will be received at the published
+	 * QoS.  Messages published at a higher quality of service will be received using
+	 * the QoS specified on the subscribe.
+	 * @param userContext optional object used to pass context to the callback. Use
+	 * null if not required.
+	 * @param callback optional listener that will be notified when subscribe
+	 * has completed
+	 * @param messageListener 
+	 * @return token used to track and wait for the subscribe to complete. The token
+	 * will be passed to callback methods if set.
+	 * @throws MqttException if there was an error registering the subscription.
+	 */
+	public IMqttToken subscribe(String topicFilter, int qos, Object userContext, IMqttActionListener callback, IMqttMessageListener messageListener) throws MqttException {
+		
+		return null;
+	}
+
+	/**
+	 * Subscribe to a topic, which may include wildcards.
+	 *
+	 * @see #subscribe(String[], int[], Object, IMqttActionListener)
+	 *
+	 * @param topicFilter the topic to subscribe to, which can include wildcards.
+	 * @param qos the maximum quality of service at which to subscribe. Messages
+	 * published at a lower quality of service will be received at the published
+	 * QoS.  Messages published at a higher quality of service will be received using
+	 * the QoS specified on the subscribe.
+	 * @param messageListener
+	 * @return token used to track and wait for the subscribe to complete. The token
+	 * will be passed to callback methods if set.
+	 * @throws MqttException if there was an error registering the subscription.
+	 */
+	public IMqttToken subscribe(String topicFilter, int qos, IMqttMessageListener messageListener) throws MqttException {
+		
+		return null;
+	}
+
+	
+	/**
+	 * Subscribe to multiple topics, each of which may include wildcards.
+	 *
+	 * <p>Provides an optimized way to subscribe to multiple topics compared to
+	 * subscribing to each one individually.</p>
+	 *
+	 * @see #subscribe(String[], int[], Object, IMqttActionListener)
+	 *
+	 * @param topicFilters one or more topics to subscribe to, which can include wildcards
+	 * @param qos the maximum quality of service at which to subscribe. Messages
+	 * published at a lower quality of service will be received at the published
+	 * QoS.  Messages published at a higher quality of service will be received using
+	 * the QoS specified on the subscribe.
+	 * @param messageListeners
+	 * @return token used to track and wait for the subscribe to complete. The token
+	 * will be passed to callback methods if set.
+	 * @throws MqttException if there was an error registering the subscription.
+	 */
+	public IMqttToken subscribe(String[] topicFilters, int[] qos, IMqttMessageListener[] messageListeners) throws MqttException {
+		
+		return null;
+	}
+
+
+	/**
+	 * Subscribe to multiple topics, each of which may include wildcards.
+	 *
+	 * <p>Provides an optimized way to subscribe to multiple topics compared to
+	 * subscribing to each one individually.</p>
+	 *
+	 * @see #subscribe(String[], int[], Object, IMqttActionListener)
+	 *
+	 * @param topicFilters one or more topics to subscribe to, which can include wildcards
+	 * @param qos the maximum quality of service at which to subscribe. Messages
+	 * published at a lower quality of service will be received at the published
+	 * QoS.  Messages published at a higher quality of service will be received using
+	 * the QoS specified on the subscribe.
+	 * @param userContext optional object used to pass context to the callback. Use
+	 * null if not required.
+	 * @param callback optional listener that will be notified when subscribe
+	 * has completed
+	 * @param messageListeners
+	 * @return token used to track and wait for the subscribe to complete. The token
+	 * will be passed to callback methods if set.
+	 * @throws MqttException if there was an error registering the subscription.
+	 */
+	public IMqttToken subscribe(String[] topicFilters, int[] qos, Object userContext, IMqttActionListener callback, IMqttMessageListener[] messageListeners) throws MqttException {
+		
+		return null;
+	}
+
 
 	/**
 	 * Requests the server unsubscribe the client from a topic.
@@ -1264,6 +1373,9 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		if (MqttServiceConstants.CONNECT_ACTION.equals(action)) {
 			connectAction(data);
 		}
+		else if (MqttServiceConstants.CONNECT_EXTENDED_ACTION.equals(action)){
+			connectExtendedAction(data);
+		}
 		else if (MqttServiceConstants.MESSAGE_ARRIVED_ACTION.equals(action)) {
 			messageArrivedAction(data);
 		}
@@ -1312,6 +1424,14 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		return false;
 
 	}
+	
+	public void messageArrivedComplete(int messageId, int qos) throws MqttException {
+		throw new UnsupportedOperationException();	
+	}
+	
+	public void setManualAcks(boolean manualAcks) {
+		throw new UnsupportedOperationException();	
+	}
 
 	/**
 	 * Process the results of a connection
@@ -1324,6 +1444,8 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		
 		simpleAction(token, data);
 	}
+
+
 
 	/**
 	 * Process a notification that we have disconnected
@@ -1352,6 +1474,17 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 					.getSerializable(MqttServiceConstants.CALLBACK_EXCEPTION);
 			callback.connectionLost(reason);
 		}
+	}
+
+	private void connectExtendedAction(Bundle data){
+		// This is called differently from a normal connect
+
+		if(callback instanceof MqttCallbackExtended){
+			boolean reconnect = data.getBoolean(MqttServiceConstants.CALLBACK_RECONNECT, false);
+			String serverURI = data.getString(MqttServiceConstants.CALLBACK_SERVER_URI);
+			((MqttCallbackExtended) callback).connectComplete(reconnect, serverURI);
+		}
+
 	}
 
 	/**
@@ -1420,7 +1553,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 			if (callback != null) {
 				Status status = (Status) data
 						.getSerializable(MqttServiceConstants.CALLBACK_STATUS);
-				if (status == Status.OK) {
+				if (status == Status.OK && token instanceof IMqttDeliveryToken) {
 					callback.deliveryComplete((IMqttDeliveryToken) token);
 				}
 			}
@@ -1523,6 +1656,26 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		IMqttToken token = tokenMap.get(Integer.parseInt(activityToken));
 		return token;
 	}
+
+	/**
+	 * Sets the DisconnectedBufferOptions for this client
+	 * @param bufferOpts
+	 */
+	public void setBufferOpts(DisconnectedBufferOptions bufferOpts) {
+		mqttService.setBufferOpts(clientHandle, bufferOpts);
+	}
+
+	public int getBufferedMessageCount(){
+		return mqttService.getBufferedMessageCount(clientHandle);
+	}
+
+	public MqttMessage getBufferedMessage(int bufferIndex){
+		return mqttService.getBufferedMessage(clientHandle, bufferIndex);
+	}
+
+	public void deleteBufferedMessage(int bufferIndex){
+		mqttService.deleteBufferedMessage(clientHandle, bufferIndex);
+	}
 	
 	/**
 	 * Get the SSLSocketFactory using SSL key store and password
@@ -1552,7 +1705,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 		 TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
 		 tmf.init(ts);
 		 TrustManager[] tm = tmf.getTrustManagers();
-		 ctx = SSLContext.getInstance("SSL");
+		 ctx = SSLContext.getInstance("TLSv1");
 		 ctx.init(null, tm, null);
 		 
 		 sslSockFactory=ctx.getSocketFactory();
@@ -1594,10 +1747,10 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	 * IntentReceiver leaks.
 	 */
 	public void unregisterResources(){
-		if(myContext != null && registerReceiver){			
+		if(myContext != null && receiverRegistered){
 			synchronized (MqttAndroidClient.this) {
 				LocalBroadcastManager.getInstance(myContext).unregisterReceiver(this);
-				registerReceiver = false;
+				receiverRegistered = false;
 			}
 			if(bindedService){
 				try{
@@ -1620,7 +1773,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	public void registerResources(Context context){
 		if(context != null){
 			this.myContext = context;
-			if(!registerReceiver){
+			if(!receiverRegistered){
 				registerReceiver(this);
 			}
 		}

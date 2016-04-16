@@ -25,6 +25,10 @@ public final class Constants {
         public static final String TABLE_NAME = "Conversations";
         public static final String ID = "id";
         public static final String TITLE = "title";
+        public static final String LAST_MESSAGE = "last_message";
+        public static final String LAST_MESSAGE_DATE = "last_message_date";
+        public static final String IMAGE_URI = "image_uri";
+        public static final String CONTACT_ID = "contact_id";
     }
 
     public final class Message {
