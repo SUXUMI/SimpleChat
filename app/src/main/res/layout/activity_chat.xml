@@ -9,15 +9,9 @@
         android:id="@+id/lv_chat_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/v_dummy" />
+        android:layout_above="@+id/et_chat_send_message" />
 
-    <View
-        android:id="@+id/v_dummy"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_above="@id/et_chat_send_message" />
-
-    <EditText
+    <com.trainigs.skillup.simplechat.ui.views.CustomEditText
         android:id="@+id/et_chat_send_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

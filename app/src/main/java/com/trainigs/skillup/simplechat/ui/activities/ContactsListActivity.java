@@ -18,6 +18,8 @@ import com.trainigs.skillup.simplechat.ui.adapters.ContactsAdapter;
 
 import butterknife.Bind;
 
+import butterknife.Bind;
+
 public class ContactsListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int LOADER_PHONE_ID = 1;
@@ -32,6 +34,7 @@ public class ContactsListActivity extends AppCompatActivity implements LoaderMan
         setContentView(R.layout.activity_contacts_list);
 
         contactsAdapter = new ContactsAdapter(this);
+        contactsRecyclerView.setAdapter(contactsAdapter);
     }
 
     @Override
@@ -42,7 +45,8 @@ public class ContactsListActivity extends AppCompatActivity implements LoaderMan
                 if (hasWriteContactsPermission == PackageManager.PERMISSION_GRANTED) {
                     Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(args.getString("search", "")));
                     return new CursorLoader(this, uri,
-                            new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup.NUMBER}, null, null, null);
+                            new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup.NUMBER, ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI},
+                            null, null, null);
                 }
         }
         return null;

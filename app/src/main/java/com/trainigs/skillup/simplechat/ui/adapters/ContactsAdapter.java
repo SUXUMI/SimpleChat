@@ -2,8 +2,13 @@ package com.trainigs.skillup.simplechat.ui.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.trainigs.skillup.simplechat.R;
 
@@ -37,6 +42,10 @@ public class ContactsAdapter extends RecyclerViewCursorAdapter<ContactsAdapter.M
 
     public static class MyViewHolder extends RecyclerViewCursorViewHolder {
 
+        ImageView imageView;
+        TextView nameTextView;
+        TextView numberTextView;
+
         /**
          * Constructor.
          *
@@ -44,11 +53,17 @@ public class ContactsAdapter extends RecyclerViewCursorAdapter<ContactsAdapter.M
          */
         public MyViewHolder(View view) {
             super(view);
+            imageView = (ImageView) view.findViewById(R.id.iv_contacts_list_item_image);
+            nameTextView = (TextView) view.findViewById(R.id.tv_contacts_list_item_name);
+            numberTextView = (TextView) view.findViewById(R.id.tv_iv_contacts_list_item_number);
         }
 
         @Override
         public void bindCursor(Cursor cursor) {
-
+            nameTextView.setText(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)));
+            numberTextView.setText(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.NUMBER)));
+            if (TextUtils.isEmpty(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI))))
+                imageView.setImageURI(Uri.parse(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI))));
         }
     }
 }

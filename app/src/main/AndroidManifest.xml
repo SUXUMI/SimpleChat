@@ -15,13 +15,7 @@
             android:authorities="com.trainigs.skillup.simplechat.provider.SimpleChat"
             android:exported="false" />
 
-        <activity android:name=".ui.activities.ContactsListActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name=".ui.activities.ContactsListActivity" />
         <activity
             android:name=".ui.activities.ConversationsListActivity"
             android:label="@string/title_activity_conversations_list"
