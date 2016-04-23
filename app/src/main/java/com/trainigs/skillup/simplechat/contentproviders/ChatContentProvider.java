@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.trainigs.skillup.simplechat.db.ChatContract;
 import com.trainigs.skillup.simplechat.db.ChatSQLiteHelper;
 import com.trainigs.skillup.simplechat.utils.Constants;
 
@@ -17,19 +18,16 @@ import com.trainigs.skillup.simplechat.utils.Constants;
  */
 public class ChatContentProvider extends ContentProvider {
 
-    public static final Uri CONVERSATION_CONTENT_URI = Uri.parse("content://" + Constants.PROVIDER_AUTHORITY
-            + "/" + Constants.Conversation.TABLE_NAME);
-    public static final Uri MESSAGE_CONTENT_URI = Uri.parse("");
-
     private static final int CONVERSATIONS = 1;
     private static final int CONVERSATIONS_ID = 2;
+    private static final int MESSAGES = 3;
 
     static final UriMatcher URI_MATCHER;
 
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-        URI_MATCHER.addURI(Constants.PROVIDER_AUTHORITY, Constants.Conversation.TABLE_NAME, CONVERSATIONS);
-        URI_MATCHER.addURI(Constants.PROVIDER_AUTHORITY, Constants.Conversation.TABLE_NAME + "/#", CONVERSATIONS_ID);
+        URI_MATCHER.addURI(ChatContract.PROVIDER_AUTHORITY, ChatContract.PATH_CONVERSATIONS, CONVERSATIONS);
+        URI_MATCHER.addURI(ChatContract.PROVIDER_AUTHORITY, ChatContract.PATH_MESSAGES, MESSAGES);
     }
 
     private ChatSQLiteHelper dbHelper;
@@ -43,22 +41,53 @@ public class ChatContentProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+        SQLiteDatabase database = dbHelper.getReadableDatabase();
+        Cursor returnCursor;
+        switch (URI_MATCHER.match(uri)) {
+            case MESSAGES:
+                returnCursor = database.query(ChatContract.Message.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return returnCursor;
     }
 
     @Nullable
     @Override
     public String getType(Uri uri) {
-        return null;
+        switch (URI_MATCHER.match(uri)) {
+            case MESSAGES:
+                return ChatContract.Message.CONTENT_TYPE;
+            default:
+                return null;
+        }
     }
 
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase database = dbHelper.getWritableDatabase();
-        long value = database.insert(Constants.Conversation.TABLE_NAME, null, values);
+        Uri returnUri;
+        switch (URI_MATCHER.match(uri)) {
+            case MESSAGES:
+                long id = database.insert(ChatContract.Message.TABLE_NAME, null, values);
+                if (id > 0)
+                    returnUri = ChatContract.Message.buildMessageUri(id);
+                else throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
         notifyChange(uri);
-        return Uri.withAppendedPath(CONVERSATION_CONTENT_URI, String.valueOf(value));
+        return returnUri;
     }
 
     @Override
@@ -67,13 +96,13 @@ public class ChatContentProvider extends ContentProvider {
         SQLiteDatabase sqLiteDatabase = dbHelper.getWritableDatabase();
         switch (URI_MATCHER.match(uri)) {
             case CONVERSATIONS:
-                result = sqLiteDatabase.delete(Constants.Conversation.TABLE_NAME, selection, selectionArgs);
+//                result = sqLiteDatabase.delete(Constants.Conversation.TABLE_NAME, selection, selectionArgs);
                 sqLiteDatabase.close();
                 break;
             case CONVERSATIONS_ID:
                 String id = uri.getPathSegments().get(1);
-                result = sqLiteDatabase.delete(Constants.Conversation.TABLE_NAME, Constants.Conversation.ID
-                        + "=" + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
+//                result = sqLiteDatabase.delete(Constants.Conversation.TABLE_NAME, Constants.Conversation.ID
+//                        + "=" + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
                 break;
             default:
                 result = -1;
