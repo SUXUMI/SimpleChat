@@ -19,6 +19,10 @@ public class Message {
 
     private Date date;
 
+    public Message(){
+        date = new Date();
+    }
+
     public Date getDate() {
         return date;
     }

@@ -2,8 +2,12 @@ package com.trainigs.skillup.simplechat.db;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
+
+import com.trainigs.skillup.simplechat.models.Message;
 
 /**
  * Created by Irakli on 4/23/2016
@@ -32,12 +36,21 @@ public class ChatContract {
 
         public static final String ID = "id";
         public static final String CONTENT = "content";
-        public static final String OWNER = "owner";
-        public static final String DATE = "date";
+        public static final String OWNER = "number";
+        public static final String DATE = "create_date";
         public static final String TYPE = "type";
 
         public static Uri buildMessageUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static void save(Context context, com.trainigs.skillup.simplechat.models.Message message) {
+            ContentValues contentValues = new ContentValues(4);
+            contentValues.put(CONTENT, message.getContent());
+            contentValues.put(OWNER, message.getOwner());
+            contentValues.put(DATE, message.getDate().getTime());
+            contentValues.put(TYPE, message.getType());
+            context.getContentResolver().insert(CONTENT_URI, contentValues);
         }
     }
 

@@ -105,7 +105,7 @@ public class Connection {
 //                client.setCallback(null);
 //                disconnect();
 //            }
-            Log.i("MYPHONE", "connectionLost");
+            Log.i("SimpleChat", "connectionLost");
             changeConnectionStatus(ConnectionStatus.DISCONNECTED);
             if (Utils.isNetworkAvailable()) {
                 Connection.getInstance(MyApplication.getInstance()).connect();
@@ -122,7 +122,7 @@ public class Connection {
 
         @Override
         public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-            Log.i("MYPHONE", "deliveryComplete");
+            Log.i("SimpleChat", "deliveryComplete");
         }
     };
 
@@ -156,7 +156,7 @@ public class Connection {
                 client.subscribe(mPhoneNumber, 1, null, new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken iMqttToken) {
-                        Log.i("MYPHONE", "subscribe Success " + mPhoneNumber);
+                        Log.i("SimpleChat", "subscribe Success " + mPhoneNumber);
                     }
 
                     @Override
