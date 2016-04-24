@@ -22,6 +22,20 @@ public class Conversation {
 
     private int contactId;
 
+    private String owner;
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public void setImageUri(Uri imageUri) {
+        this.imageUri = imageUri;
+    }
+
     public int getId() {
         return id;
     }
@@ -52,6 +66,10 @@ public class Conversation {
 
     public void setLastMessageDate(long lastMessageDate) {
         this.lastMessageDate = new Date(lastMessageDate);
+    }
+
+    public void setLastMessageDate(Date lastMessageDate) {
+        this.lastMessageDate = lastMessageDate;
     }
 
     public Uri getImageUri() {

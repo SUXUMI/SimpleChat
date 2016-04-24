@@ -11,16 +11,24 @@ public class Message {
 
     private String content;
 
-    private Conversation conversation;
-
     private String owner;
 
     private int type;
 
     private Date date;
 
-    public Message(){
+    private int conversationId;
+
+    public Message() {
         date = new Date();
+    }
+
+    public int getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(int conversationId) {
+        this.conversationId = conversationId;
     }
 
     public Date getDate() {
@@ -45,14 +53,6 @@ public class Message {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public Conversation getConversation() {
-        return conversation;
-    }
-
-    public void setConversation(Conversation conversation) {
-        this.conversation = conversation;
     }
 
     public String getOwner() {

@@ -38,5 +38,6 @@ public class ContactsCursorAdapter extends CursorAdapter {
         numberTextView.setText(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
         if (!TextUtils.isEmpty(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))))
             imageView.setImageURI(Uri.parse(cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))));
+        else imageView.setImageResource(R.drawable.user);
     }
 }

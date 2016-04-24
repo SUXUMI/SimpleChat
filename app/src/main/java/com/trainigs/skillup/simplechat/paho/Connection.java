@@ -1,9 +1,15 @@
 package com.trainigs.skillup.simplechat.paho;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.trainigs.skillup.simplechat.db.ChatContract;
+import com.trainigs.skillup.simplechat.models.Conversation;
+import com.trainigs.skillup.simplechat.models.Message;
 import com.trainigs.skillup.simplechat.ui.MyApplication;
 import com.trainigs.skillup.simplechat.utils.Constants;
 import com.trainigs.skillup.simplechat.utils.Utils;
@@ -101,10 +107,6 @@ public class Connection {
     MqttCallback clientCallback = new MqttCallback() {
         @Override
         public void connectionLost(Throwable throwable) {
-//            synchronized (this) {
-//                client.setCallback(null);
-//                disconnect();
-//            }
             Log.i("SimpleChat", "connectionLost");
             changeConnectionStatus(ConnectionStatus.DISCONNECTED);
             if (Utils.isNetworkAvailable()) {
@@ -116,6 +118,39 @@ public class Connection {
         public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
             try {
                 JSONObject jsonObject = new JSONObject(mqttMessage.toString());
+                String number = jsonObject.getString("number");
+                String content = jsonObject.getString("content");
+                Conversation conversation = ChatContract.Conversation.getConversationByNumber(MyApplication.getInstance(), number);
+                if (conversation == null) {
+                    conversation = new Conversation();
+                    conversation.setLastMessage(content);
+                    conversation.setOwner(number);
+                    conversation.setLastMessageDate(new Date());
+                    conversation.setTitle(number);
+
+                    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+                    Cursor cursor = context.getContentResolver().query(uri,
+                            new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI}, null, null,
+                            ContactsContract.PhoneLookup.DISPLAY_NAME + " ASC");
+                    if (cursor != null) {
+                        if (cursor.getCount() > 0) {
+                            cursor.moveToFirst();
+                            conversation.setTitle(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)));
+                            conversation.setImageUri(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)));
+                        }
+                        cursor.close();
+                    }
+
+                    int id = ChatContract.Conversation.save(MyApplication.getInstance(), conversation);
+                    conversation.setId(id);
+                }
+                Message message = new Message();
+                message.setContent(content);
+                message.setOwner(number);
+                message.setConversationId(conversation.getId());
+                message.setType(0);
+                ChatContract.Message.save(MyApplication.getInstance(), message);
+
             } catch (JSONException ignore) {
             }
         }
@@ -126,17 +161,14 @@ public class Connection {
         }
     };
 
-    String mPhoneNumber;
-
     private Connection(Context context) {
         //generate the client handle from its hash code
 
         TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        mPhoneNumber = tMgr.getLine1Number();
 
         this.context = context;
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy mm:hh");
-        clientHandle = mPhoneNumber + dateFormat.format(new Date());
+        clientHandle = dateFormat.format(new Date());
         clientId = clientHandle;
         host = Constants.MESSAGES_HOST;
         port = 1883;
@@ -146,28 +178,32 @@ public class Connection {
         createNewClient();
     }
 
+    public void subscribe() {
+        try {
+            client.subscribe(MyApplication.getInstance().getNumber(), 1, null, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken iMqttToken) {
+                    Log.i("SimpleChat", "subscribe Success " + MyApplication.getInstance().getNumber());
+                }
+
+                @Override
+                public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
+                    //                                    if (Utils.isNetworkAvailable() && MyApplication.getInstance().getValue(Utils.SIGNED_PREFERENCE_KEY, false))
+                    //                                        connect();
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
     IMqttActionListener connectActionListener = new IMqttActionListener() {
         @Override
         public void onSuccess(IMqttToken iMqttToken) {
-            try {
-                Log.i("SimpleChat", "MQTT Connected");
-                client.setCallback(clientCallback);
-//                client.setCallback(null);
-                client.subscribe(mPhoneNumber, 1, null, new IMqttActionListener() {
-                    @Override
-                    public void onSuccess(IMqttToken iMqttToken) {
-                        Log.i("SimpleChat", "subscribe Success " + mPhoneNumber);
-                    }
-
-                    @Override
-                    public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
-//                                    if (Utils.isNetworkAvailable() && MyApplication.getInstance().getValue(Utils.SIGNED_PREFERENCE_KEY, false))
-//                                        connect();
-                    }
-                });
-                status = ConnectionStatus.CONNECTED;
-            } catch (MqttException ignore) {
-            }
+            Log.i("SimpleChat", "MQTT Connected");
+            client.setCallback(clientCallback);
+            subscribe();
+            status = ConnectionStatus.CONNECTED;
         }
 
         @Override

@@ -53,6 +53,15 @@ public class ChatContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case CONVERSATIONS:
+                returnCursor = database.query(ChatContract.Conversation.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -66,6 +75,8 @@ public class ChatContentProvider extends ContentProvider {
         switch (URI_MATCHER.match(uri)) {
             case MESSAGES:
                 return ChatContract.Message.CONTENT_TYPE;
+            case CONVERSATIONS:
+                return ChatContract.Conversation.CONTENT_TYPE;
             default:
                 return null;
         }
@@ -83,6 +94,12 @@ public class ChatContentProvider extends ContentProvider {
                     returnUri = ChatContract.Message.buildMessageUri(id);
                 else throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
+            case CONVERSATIONS:
+                id = database.insert(ChatContract.Conversation.TABLE_NAME, null, values);
+                if (id > 0)
+                    returnUri = ChatContract.Message.buildMessageUri(id);
+                else throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -96,13 +113,10 @@ public class ChatContentProvider extends ContentProvider {
         SQLiteDatabase sqLiteDatabase = dbHelper.getWritableDatabase();
         switch (URI_MATCHER.match(uri)) {
             case CONVERSATIONS:
-//                result = sqLiteDatabase.delete(Constants.Conversation.TABLE_NAME, selection, selectionArgs);
-                sqLiteDatabase.close();
+                result = sqLiteDatabase.delete(ChatContract.Conversation.TABLE_NAME, selection, selectionArgs);
                 break;
-            case CONVERSATIONS_ID:
-                String id = uri.getPathSegments().get(1);
-//                result = sqLiteDatabase.delete(Constants.Conversation.TABLE_NAME, Constants.Conversation.ID
-//                        + "=" + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
+            case MESSAGES:
+                result = sqLiteDatabase.delete(ChatContract.Message.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 result = -1;
@@ -116,7 +130,21 @@ public class ChatContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        int rowsUpdated = 0;
+        switch (URI_MATCHER.match(uri)) {
+            case CONVERSATIONS:
+                rowsUpdated = database.update(ChatContract.Conversation.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            case MESSAGES:
+                rowsUpdated = database.update(ChatContract.Message.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        if (rowsUpdated != 0)
+            notifyChange(uri);
+        return rowsUpdated;
     }
 
     private void notifyChange(Uri uri) {

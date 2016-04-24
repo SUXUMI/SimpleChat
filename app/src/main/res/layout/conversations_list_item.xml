@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
     <ImageView
         android:id="@+id/iv_conversaton_list_item_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerVertical="true"
         android:contentDescription="@null" />
 
     <TextView
-        android:id="@+id/tv_conversaton_list_item_text"
+        android:id="@+id/tv_conversaton_list_item_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/iv_conversaton_list_item_image"
+        android:layout_toRightOf="@id/iv_conversaton_list_item_image"
         android:textSize="15sp" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/tv_conversaton_list_item_last_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_conversaton_list_item_title"
+        android:layout_toEndOf="@id/iv_conversaton_list_item_image"
+        android:layout_toRightOf="@id/iv_conversaton_list_item_image"
+        android:textSize="15sp" />
+
+</RelativeLayout>

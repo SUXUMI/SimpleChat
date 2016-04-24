@@ -12,10 +12,11 @@ import com.trainigs.skillup.simplechat.utils.Constants;
 public class ChatSQLiteHelper extends SQLiteOpenHelper {
 
     private static final String CONVERSATION_TABLE_CREATE = "CREATE TABLE IF NOT EXISTS " + ChatContract.Conversation.TABLE_NAME
-            + "(" + ChatContract.Conversation.ID + " INTEGER PRIMARY KEY, " + ChatContract.Conversation.TITLE + " TEXT);";
+            + "(" + ChatContract.Conversation._ID + " INTEGER PRIMARY KEY, " + ChatContract.Conversation.LAST_MESSAGE + " TEXT, " + ChatContract.Conversation.IMAGE_URI + " TEXT, "
+            + ChatContract.Conversation.OWNER + " TEXT, " + ChatContract.Conversation.LAST_MESSAGE_DATE + " INTEGER, " + ChatContract.Conversation.TITLE + " TEXT);";
 
     private static final String MESSAGE_TABLE_CREATE = "CREATE TABLE IF NOT EXISTS " + ChatContract.Message.TABLE_NAME
-            + "(" + ChatContract.Message.ID + " INTEGER PRIMARY KEY, " + ChatContract.Message.OWNER + " TEXT, "
+            + "(" + ChatContract.Message._ID + " INTEGER PRIMARY KEY, " + ChatContract.Message.OWNER + " TEXT, " + ChatContract.Message.CONVERSATION_ID + " INTEGER, "
             + ChatContract.Message.TYPE + " INTEGER, " + ChatContract.Message.DATE + " INTEGER, " + ChatContract.Message.CONTENT + " TEXT);";
 
     public ChatSQLiteHelper(Context context) {
@@ -31,6 +32,7 @@ public class ChatSQLiteHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + ChatContract.Conversation.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + ChatContract.Message.TABLE_NAME);
         onCreate(db);
     }
 }

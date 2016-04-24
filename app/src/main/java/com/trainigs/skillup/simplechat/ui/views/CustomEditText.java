@@ -61,6 +61,7 @@ public class CustomEditText extends EditText {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         Rect bounds;
+        drawableRight = getCompoundDrawables()[2];
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             actionX = (int) event.getX();
             actionY = (int) event.getY();

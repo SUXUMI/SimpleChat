@@ -2,6 +2,7 @@ package com.trainigs.skillup.simplechat.ui;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 
 /**
@@ -15,19 +16,21 @@ public class MyApplication extends Application {
         return instance;
     }
 
-    private String mPhoneNumber;
+    private SharedPreferences prefs;
 
-    public String getPhoneNumber() {
-        return mPhoneNumber;
+    public SharedPreferences getPrefs() {
+        return prefs;
     }
 
-    public void setPhoneNumber(String mPhoneNumber) {
-        this.mPhoneNumber = mPhoneNumber;
+    public String getNumber(){
+        return MyApplication.getInstance().getPrefs().getString("number", "");
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         instance = this;
+
+        prefs = getSharedPreferences("com.trainigs.skillup.simplechat", Context.MODE_PRIVATE);
     }
 }

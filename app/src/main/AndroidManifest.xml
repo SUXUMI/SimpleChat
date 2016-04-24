@@ -3,7 +3,6 @@
     package="com.trainigs.skillup.simplechat">
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
 
     <application
         android:name=".ui.MyApplication"
@@ -28,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.ChatActivity"></activity>
+        <activity android:name=".ui.activities.ChatActivity" />
     </application>
 
 </manifest>

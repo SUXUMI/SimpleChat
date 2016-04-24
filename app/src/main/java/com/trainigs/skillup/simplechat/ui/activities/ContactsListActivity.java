@@ -41,6 +41,7 @@ public class ContactsListActivity extends AppCompatActivity implements LoaderMan
                 Intent intent = new Intent(ContactsListActivity.this, ChatActivity.class);
                 intent.putExtra("number", cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
                 intent.putExtra("name", cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
+                intent.putExtra("image", cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI)));
                 startActivity(intent);
                 finish();
             }
@@ -59,7 +60,7 @@ public class ContactsListActivity extends AppCompatActivity implements LoaderMan
                     return new CursorLoader(this, ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI, ContactsContract.CommonDataKinds.Phone._ID},
                             ContactsContract.CommonDataKinds.Phone.HAS_PHONE_NUMBER + " = 1",
-                            null, null);
+                            null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
                 }
         }
         return null;

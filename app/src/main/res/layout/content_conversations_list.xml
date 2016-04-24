@@ -8,9 +8,20 @@
     tools:context=".ui.activities.ConversationsListActivity"
     tools:showIn="@layout/activity_conversations_list">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rv_conversation_list"
+    <Button
+        android:id="@+id/btn_conversation_list_number"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:gravity="center"
+        android:clickable="true"
+        android:onClick="onNumberClick"
+        android:textSize="18sp" />
+
+    <ListView
+        android:id="@+id/lv_conversation_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/btn_conversation_list_number" />
 
 </RelativeLayout>
