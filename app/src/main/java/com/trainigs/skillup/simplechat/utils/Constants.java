@@ -9,5 +9,5 @@ public final class Constants {
     }
 
     //Temporary server address
-    public static final String MESSAGES_HOST = "89.150.1.15";
+    public static final String MESSAGES_HOST = "";
 }
